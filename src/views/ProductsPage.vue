@@ -1,8 +1,31 @@
 <template>
-    <h1>This is the Products Page</h1>
+    <h1> {{ products }}</h1>
+    <div id="page-wrap">
+        <div class="grid-wrap">
+            <div v-for="product in products" class="product-item" v-bind:key="product.id">
+                <img v-bind:src="product.img" />
+        <h3 class="product-name">{{ product.title }}</h3>
+        <p class="product-price">${{ product.price }}</p>
+        <RouterLink v-bind:to="'/products/' + product.id">
+            <button>View Details</button>
+        </RouterLink>
+    </div>
+        </div>
+    </div>
+    
 </template>
 
-<script setup></script>
+<script>
+import {products} from "../fakeData.js"
+
+export default{
+    data(){
+        return {
+            products
+        }
+    }
+}
+</script>
 
 <style scoped>
   .grid-wrap {

@@ -2,7 +2,7 @@
     <h1>This is the Products Detail Page</h1>
 </template>
 
-<script setup></script>
+<script></script>
 
 <style scoped>
   #page-wrap {
