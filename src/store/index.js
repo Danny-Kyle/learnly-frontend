@@ -25,6 +25,9 @@ const store = createStore({
     },
     async register({ dispatch }, credentials) {
       const response = await axios.post('https://learnly-backend-dam0.onrender.com/api/auth/register', credentials);
+      console.log('Login request payload:', credentials);
+      console.log('Stored token:', localStorage.getItem('token'));
+
       // Optionally, automatically log in the user after registration
       await dispatch('login', credentials);
     },
@@ -33,6 +36,8 @@ const store = createStore({
       const { accessToken, ...user } = response.data;
       localStorage.setItem('token', accessToken);
       commit('SET_AUTH', { isAuthenticated: true, user });
+      console.log('Login request payload:', credentials);
+      console.log('Stored token:', localStorage.getItem('token'));
     },
     async fetchUserProfile({ commit }) {
       try {
@@ -47,6 +52,7 @@ const store = createStore({
         commit('SET_AUTH', { isAuthenticated: false, user: null });
       }
     },
+    
   },
 });
 
