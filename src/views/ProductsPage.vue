@@ -1,66 +1,47 @@
 <template>
-    <h1> {{ products }}</h1>
-    <div id="page-wrap">
-        <div class="grid-wrap">
-            <div v-for="product in products" class="product-item" v-bind:key="product.id">
-                <img v-bind:src="product.img" />
-        <h3 class="product-name">{{ product.title }}</h3>
-        <p class="product-price">${{ product.price }}</p>
-        <RouterLink v-bind:to="'/products/' + product.id">
-            <button>View Details</button>
-        </RouterLink>
-    </div>
-        </div>
-    </div>
-    
+  <div class="products-page">
+    <SearchBar @search="handleSearch" />
+    <ProductList :products="products" />
+  </div>
 </template>
 
 <script>
-import {products} from "../fakeData.js"
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
+import SearchBar from '../components/SearchBar.vue';
+import ProductList from '../components/ProductList.vue';
 
-export default{
-    data(){
-        return {
-            products
-        }
-    }
-}
+export default {
+  components: { SearchBar, ProductList },
+  setup() {
+    const store = useStore();
+    const products = ref([]);
+    const searchQuery = ref('');
+
+    onMounted(async () => {
+      const response = await axios.get('https://learnly-backend-dam0.onrender.com/api/products');
+      products.value = response.data;
+    });
+
+    const handleSearch = async (query) => {
+      searchQuery.value = query;
+      const response = await axios.get(`https://learnly-backend-dam0.onrender.com/api/products?search=${query}`);
+      products.value = response.data;
+    };
+
+    return { products, handleSearch };
+  },
+};
 </script>
 
 <style scoped>
-  .grid-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    margin-top: 16px;
-  }
-
-  .product-item {
-    align-items: center;
-    border-radius: 8px;
-    box-shadow: 0px 2px 5px #888;
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 2%;
-    padding: 20px;
-    position: relative;
-    width: 32%;
-  }
-
-  .product-name {
-    margin-bottom: 0;
-  }
-
-  img {
-    height: 200px;
-    width: 200px;
-  }
-
-  a {
-    width: 100%;
-  }
-
-  button {
-    width: 100%;
-  }
+.products-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 </style>
