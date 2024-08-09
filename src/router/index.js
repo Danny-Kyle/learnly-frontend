@@ -3,7 +3,7 @@ import ProductsPage from '@/views/ProductsPage.vue';
 import ProductDetailPage from '@/views/ProductDetailPage.vue';
 import CartPage from '@/views/CartPage.vue';
 import NotFoundPage from '@/views/NotFoundPage.vue';
-import RegisterPage from '@/views/RegisterPage.vue';
+import RegisterPage from '@/views/RegisterPage.vue'; // Add RegisterPage component
 import LoginPage from '@/views/LoginPage.vue'; // Add LoginPage component
 import store from '@/store';
 
