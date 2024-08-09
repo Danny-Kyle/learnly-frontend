@@ -32,13 +32,23 @@ const store = createStore({
       await dispatch('login', credentials);
     },
     async login({ commit }, credentials) {
-      const response = await axios.post('https://learnly-backend-dam0.onrender.com/api/auth/login', credentials);
-      const { accessToken, ...user } = response.data;
-      localStorage.setItem('token', accessToken);
-      commit('SET_AUTH', { isAuthenticated: true, user });
-      console.log('Login request payload:', credentials);
-      console.log('Stored token:', localStorage.getItem('token'));
+      console.log('Login request payload:', credentials); // Log the credentials sent to the server
+    
+      try {
+        const response = await axios.post('https://learnly-backend-dam0.onrender.com/api/auth/login', credentials);
+        console.log('Login response:', response.data); // Log the response from the server
+    
+        const { accessToken, ...user } = response.data;
+        localStorage.setItem('token', accessToken);
+        commit('SET_AUTH', { isAuthenticated: true, user });
+    
+        console.log('Stored token:', localStorage.getItem('token')); // Log the stored token
+    
+      } catch (error) {
+        console.error('Login error:', error.response ? error.response.data : error.message); // Log any errors
+      }
     },
+    
     async fetchUserProfile({ commit }) {
       try {
         const token = localStorage.getItem('token');
