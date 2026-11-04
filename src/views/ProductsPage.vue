@@ -1,35 +1,38 @@
 <template>
   <div class="products-page">
     <SearchBar @search="handleSearch" />
-    <ProductList :products="products" />
+    <p v-if="error" role="alert">{{ error }}</p>
+    <ProductList :products="filteredProducts" />
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import { useStore } from 'vuex';
+import { computed, ref, onMounted } from 'vue';
+import api from '../api/client.js';
 import SearchBar from '../components/SearchBar.vue';
 import ProductList from '../components/ProductList.vue';
 
 export default {
   components: { SearchBar, ProductList },
   setup() {
-    const store = useStore();
+    const error = ref('');
     const products = ref([]);
     const searchQuery = ref('');
 
     onMounted(async () => {
-      const response = await axios.get('https://learnly-backend-dam0.onrender.com/api/products');
-      products.value = response.data;
+      try {
+        products.value = (await api.get('/api/products')).data;
+      } catch {
+        error.value = 'Could not load products.';
+      }
     });
 
-    const handleSearch = async (query) => {
-      searchQuery.value = query;
-      const response = await axios.get(`https://learnly-backend-dam0.onrender.com/api/products?search=${query}`);
-      products.value = response.data;
-    };
+    const handleSearch = (query) => { searchQuery.value = query.trim().toLowerCase(); };
+    const filteredProducts = computed(() => products.value.filter((product) =>
+      product.title.toLowerCase().includes(searchQuery.value)
+    ));
 
-    return { products, handleSearch };
+    return { filteredProducts, handleSearch, error };
   },
 };
 </script>

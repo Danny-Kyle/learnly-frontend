@@ -20,10 +20,10 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['login']),
+    ...mapActions({ submitLogin: 'login' }),
     async login() {
       try {
-        await this.login({
+        await this.submitLogin({
           username: this.username,
           password: this.password
         });
