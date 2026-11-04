@@ -2,37 +2,58 @@
   <div class="cart-page">
     <h1>Cart</h1>
     <ul>
-      <li v-for="product in cartProducts" :key="product.id">
-        {{ product.name }} ({{ product.price }})
-        <button @click="removeFromCart(product)">Remove</button>
+      <li v-for="product in cartProducts" :key="product._id">
+        {{ product.title }} × {{ product.quantity }} ({{ product.price }})
+        <button :disabled="pending" @click="removeFromCart(product)">Remove</button>
       </li>
     </ul>
     <p>Total: {{ cartTotal }}</p>
-    <button @click="checkout">Checkout</button>
+    <p v-if="message" role="status">{{ message }}</p>
+    <form v-if="cartProducts.length" @submit.prevent="checkout">
+      <label>Delivery address <input v-model="address" required maxlength="500" :disabled="pending" /></label>
+      <button :disabled="pending">{{ pending ? 'Placing order…' : 'Place order' }}</button>
+    </form>
   </div>
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import api from '../api/client.js';
 import { useStore } from 'vuex';
 
 export default {
   setup() {
     const store = useStore();
-    const cartProducts = computed(() => store.state.cart.products);
-    const cartTotal = computed(() => store.state.cart.total);
+    const cartProducts = computed(() => store.state.cart);
+    const cartTotal = computed(() => cartProducts.value.reduce(
+      (total, item) => total + Math.round(item.price * 100) * item.quantity, 0
+    ) / 100);
+    const address = ref('');
+    const pending = ref(false);
+    const message = ref('');
 
-    const removeFromCart = (product) => {
-      store.dispatch('cart/removeProduct', product);
+    const removeFromCart = (product) => store.commit('REMOVE_FROM_CART', product._id);
+
+    const checkout = async () => {
+      if (pending.value || !address.value.trim() || !cartProducts.value.length) return;
+      pending.value = true;
+      message.value = '';
+      try {
+        const { data } = await api.post('/api/orders', {
+          products: cartProducts.value.map(({ _id, quantity }) => ({ productId: _id, quantity })),
+          address: { line: address.value.trim() },
+        }, { headers: { Authorization: 'Bearer ' + localStorage.getItem('token') } });
+        store.commit('CLEAR_CART');
+        address.value = '';
+        message.value = 'Order placed. Reference: ' + data._id;
+      } catch {
+        message.value = 'Order could not be placed. Your cart is still available.';
+      } finally {
+        pending.value = false;
+      }
     };
 
-    const checkout = () => {
-      // Implement checkout logic here
-      // For now, just log a message to the console
-      console.log('Checkout button clicked!');
-    };
-
-    return { cartProducts, cartTotal, removeFromCart, checkout };
+    return { cartProducts, cartTotal, removeFromCart, checkout, address, pending, message };
   },
 };
 </script>

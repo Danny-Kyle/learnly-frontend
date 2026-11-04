@@ -1,15 +1,20 @@
 <template>
   <div class="product-detail-page">
-    <h1>{{ product.name }}</h1>
+    <p v-if="error" role="alert">{{ error }}</p>
+    <template v-if="product">
+    <h1>{{ product.title }}</h1>
     <p>{{ product.description }}</p>
-    <img :src="product.image" alt="Product Image" />
+    <img :src="product.img" alt="Product Image" />
     <p>Price: {{ product.price }}</p>
     <button @click="addToCart">Add to Cart</button>
+    <RouterLink to="/cart">View cart</RouterLink>
+    </template>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, watch } from 'vue';
+import api from '../api/client.js';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 
@@ -17,18 +22,31 @@ export default {
   setup() {
     const store = useStore();
     const route = useRoute();
-    const product = ref({});
+    const product = ref(null);
+    const error = ref('');
 
-    onMounted(async () => {
-      const response = await axios.get(`https://learnly-backend-dam0.onrender.com/api/products/${route.params.id}`);
-      product.value = response.data;
-    });
+    watch(() => route.params.id, async (id, _, onCleanup) => {
+      if (!id) return;
+      const controller = new AbortController();
+      onCleanup(() => controller.abort());
+      product.value = null;
+      error.value = '';
+      try {
+        const response = await api.get('/api/products/find/' + encodeURIComponent(id), {
+          signal: controller.signal,
+        });
+        product.value = response.data;
+        if (!product.value) error.value = 'Product unavailable.';
+      } catch {
+        if (!controller.signal.aborted) error.value = 'Product unavailable.';
+      }
+    }, { immediate: true });
 
     const addToCart = () => {
-      store.dispatch('cart/addProduct', product.value);
+      store.commit('ADD_TO_CART', product.value);
     };
 
-    return { product, addToCart };
+    return { product, addToCart, error };
   },
 };
 </script>

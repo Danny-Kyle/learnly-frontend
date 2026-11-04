@@ -55,25 +55,11 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from, next) => {
-  const isAuthenticated = store.state.auth.isAuthenticated;
-  const hasProfile = store.state.auth.user && store.state.auth.user.profile;
-
-  // Fetch user profile if authenticated
-  if (isAuthenticated) {
-    await store.dispatch('fetchUserProfile');
-  }
-
-  if (to.meta.requiresAuth) {
-    if (!isAuthenticated) {
-      next(`/login?redirect=${to.fullPath}`);
-    } else if (!hasProfile) {
-      next('/register');
-    } else {
-      next();
-    }
-  } else {
-    next();
+router.beforeEach(async (to) => {
+  if (!to.meta.requiresAuth) return;
+  if (!store.state.auth.isAuthenticated) await store.dispatch('fetchUserProfile');
+  if (!store.state.auth.isAuthenticated) {
+    return { name: 'Login', query: { redirect: to.fullPath } };
   }
 });
 

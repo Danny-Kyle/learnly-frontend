@@ -7,20 +7,13 @@
 
 <script>
 import { ref } from 'vue';
-import axios from 'axios';
 
 export default {
-    setup() {
+    emits: ['search'],
+    setup(_, { emit }) {
         const searchQuery = ref('');
 
-        const searchProducts = async () => {
-            try {
-                const response = await axios.get(`/api/products?title=${searchQuery.value}`);
-                console.log(response.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
+        const searchProducts = () => emit('search', searchQuery.value);
 
         return {
             searchQuery,

@@ -22,10 +22,10 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['register']),
+    ...mapActions({ submitRegister: 'register' }),
     async register() {
       try {
-        await this.register({
+        await this.submitRegister({
           username: this.username,
           email: this.email,
           password: this.password
